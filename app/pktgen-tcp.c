@@ -11,6 +11,28 @@
 #include "pktgen.h"
 
 #include "pktgen-tcp.h"
+#include "random.h"
+
+static void select_next_random_source(pkt_seq_t *pkt)
+{
+        unsigned char ra[4];
+
+        ra[0] = hp_rand() & 0xFF;
+        ra[1] = hp_rand() & 0xFF;
+        ra[2] = hp_rand() & 0xFF;
+        ra[3] = hp_rand() & 0xFF;
+        memcpy(&pkt->ip_src_addr.addr.ipv4.s_addr, ra, 4);
+}
+
+static void select_next_random_srcport(pkt_seq_t *pkt)
+{
+        unsigned char ra[4];
+
+        ra[0] = hp_rand() & 0xFF;
+        ra[1] = hp_rand() & 0xFF;
+        memcpy(&pkt->sport, ra, 2);
+}
+
 
 /**
  *
@@ -34,6 +56,7 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
         struct rte_tcp_hdr *tcp   = (struct rte_tcp_hdr *)&ipv4[1];
 
         /* Create the TCP header */
+	select_next_random_source(pkt);
         ipv4->src_addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
         ipv4->dst_addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 
@@ -42,9 +65,10 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
         ipv4->total_length  = htons(tlen);
         ipv4->next_proto_id = pkt->ipProto;
 
+	select_next_random_srcport(pkt);
         tcp->src_port = htons(pkt->sport);
         tcp->dst_port = htons(pkt->dport);
-        tcp->sent_seq = htonl(pkt->tcp_seq);
+        tcp->sent_seq = htonl((uint32_t)(hp_rand()));
         tcp->recv_ack = htonl(pkt->tcp_ack);
         tcp->data_off =
             ((sizeof(struct rte_tcp_hdr) / sizeof(uint32_t)) << 4); /* Offset in words */
