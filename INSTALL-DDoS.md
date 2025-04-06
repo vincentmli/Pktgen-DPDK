@@ -10,11 +10,18 @@ git clone https://github.com/vincentmli/Pktgen-DPDK.git
 
 cd Pktgen-DPDK
 
+git checkout vli-ddos
+
 meson build ( creates build directory under Pktgen-DPDK)
 
 cd build
 
-meson configure -Denable-avx2=false ( see https://github.com/pktgen/Pktgen-DPDK/issues/28)
+
+#CPU that does not support avx2 and avx
+(https://github.com/pktgen/Pktgen-DPDK/issues/28)
+(https://github.com/pktgen/Pktgen-DPDK/issues/255)
+
+meson configure -Denable-avx2=false -Denable-avx=false
 
 ninja
 
